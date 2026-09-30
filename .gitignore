@@ -1,0 +1,8 @@
+node_modules/
+**/node_modules/
+.env
+.env.*
+!.env.example
+backend/data/
+npm-debug.log*
+.DS_Store

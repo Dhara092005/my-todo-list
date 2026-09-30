@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Animated To-Do List</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body class="todo-page">
+  <div class="app-shell">
+    <aside class="app-sidebar" id="app-sidebar" aria-label="Sidebar navigation" aria-hidden="true">
+      <div class="sidebar-brand">
+        <span class="brand-mark">✓</span>
+        <span>Daymark</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <button class="sidebar-link active" type="button" data-view="dashboard"><span>🏠</span>Dashboard</button>
+        <button class="sidebar-link" type="button" data-view="all-tasks"><span>📝</span>All Tasks</button>
+        <div class="sidebar-section-title"><span>📂</span>Categories</div>
+        <div id="category-navigation" class="category-navigation"></div>
+        <button class="sidebar-link" type="button" data-view="important"><span>⭐</span>Important</button>
+        <button class="sidebar-link add-category-link" id="add-category-btn" type="button"><span>＋</span>Add Category</button>
+        <button class="sidebar-link" type="button" data-view="favorites"><span>⭐</span>Favorites</button>
+        <button class="sidebar-link" type="button" data-view="calendar"><span>📅</span>Calendar</button>
+        <div class="sidebar-section-title"><span>🔔</span>Notifications</div>
+        <button class="sidebar-link notification-view-link" type="button" data-view="due-today">Today's Tasks</button>
+        <button class="sidebar-link notification-view-link" type="button" data-view="overdue">Overdue Tasks</button>
+        <button class="sidebar-link notification-view-link" type="button" data-view="due-soon">Due Soon (30 min)</button>
+        <button class="sidebar-link" type="button" data-view="statistics"><span>📊</span>Statistics</button>
+        <button class="sidebar-link" type="button" id="sidebar-settings"><span>⚙️</span>Settings</button>
+        <button class="sidebar-link" type="button" data-view="profile"><span>👤</span>Profile</button>
+      </nav>
+
+      <button class="sidebar-link sidebar-logout" type="button" onclick="logout()"><span>🚪</span>Logout</button>
+    </aside>
+    <button class="sidebar-scrim" id="sidebar-scrim" type="button" aria-label="Close navigation"></button>
+
+    <main class="app-main">
+      <div class="todo-container">
+
+    <header>
+      <button id="menu-toggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+      <h1 id="page-title">Dashboard</h1>
+
+      <button id="theme-toggle" title="Toggle theme">
+        🌓
+      </button>
+    </header>
+
+    <div id="task-content">
+    <div class="search-bar">
+      <input id="search-input" type="search" placeholder="Search tasks or categories..." />
+    </div>
+
+    <form id="todo-form">
+
+      <input
+        id="todo-input"
+        type="text"
+        placeholder="Add a new task..."
+        required
+      />
+
+      <input id="due-date" type="date" />
+
+      <input id="due-time" type="time" />
+
+      <input id="category-input" type="text" placeholder="Category (e.g. Work)" />
+
+      <select id="repeat-select" aria-label="Repeat">
+        <option value="none" selected>Repeat: none</option>
+        <option value="daily">Repeat: daily</option>
+        <option value="weekly">Repeat: weekly</option>
+        <option value="weekdays">Weekdays only</option>
+        <option value="monthly">Monthly</option>
+      </select>
+
+      <select id="priority-select" aria-label="Priority">
+
+        <option value="low">
+          Low Priority
+        </option>
+
+        <option value="medium" selected>
+          Medium Priority
+        </option>
+
+        <option value="high">
+          High Priority
+        </option>
+
+      </select>
+
+      <button type="submit" class="add-btn">
+        Add
+      </button>
+
+      <button type="button" id="add-water-habit" class="add-btn" style="flex: 1 1 100%; margin-top: .75rem;">
+        Add daily water habit
+      </button>
+
+    </form>
+
+    <div class="filters">
+
+      <button
+        class="filter-btn active"
+        data-filter="all"
+      >
+        All
+      </button>
+
+      <button
+        class="filter-btn"
+        data-filter="active"
+      >
+        Active
+      </button>
+
+      <button
+        class="filter-btn"
+        data-filter="completed"
+      >
+        Completed
+      </button>
+
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+
+      <progress
+        id="progress-bar"
+        value="0"
+        max="100"
+      ></progress>
+
+      <span id="progress-text">
+        0% Completed
+      </span>
+
+    </div>
+
+    <!-- Todo List -->
+    <ul class="todo-list" id="todo-list"></ul>
+
+    <!-- Clear Completed -->
+    <button
+      class="clear-btn"
+      id="clear-completed"
+    >
+      Clear Completed
+    </button>
+
+    </div>
+    <section id="statistics-view" class="statistics-view hidden" aria-label="Task statistics">
+      <div class="statistics-grid">
+        <article class="stat-item"><span>Total tasks</span><strong id="stat-total">0</strong></article>
+        <article class="stat-item"><span>Completed</span><strong id="stat-completed">0</strong></article>
+        <article class="stat-item"><span>Pending</span><strong id="stat-active">0</strong></article>
+        <article class="stat-item"><span>Completion rate</span><strong id="stat-completion-rate">0%</strong></article>
+      </div>
+      <div class="statistics-progress">
+        <div><span>Progress</span></div>
+        <progress id="statistics-progress-bar" value="0" max="100"></progress>
+      </div>
+      <div class="statistics-categories" id="statistics-categories"></div>
+    </section>
+    <section id="calendar-view" class="calendar-view hidden" aria-label="Task calendar">
+      <div class="calendar-toolbar">
+        <button id="calendar-prev" type="button" aria-label="Previous month">‹</button>
+        <h2 id="calendar-month"></h2>
+        <button id="calendar-next" type="button" aria-label="Next month">›</button>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="calendar-agenda" id="calendar-agenda">Select a date to see its tasks.</div>
+    </section>
+    <section id="profile-view" class="profile-view hidden" aria-label="Profile information">
+      <div class="profile-topline">
+        <div class="profile-photo-frame">
+          <span id="profile-photo-fallback">👤</span>
+          <img id="profile-photo" alt="Profile photo" class="hidden" />
+        </div>
+        <div class="profile-identity">
+          <h2 id="profile-username">Account</h2>
+          <p id="profile-email">Loading profile...</p>
+        </div>
+        <button id="edit-profile-btn" class="add-btn" type="button">Edit Profile</button>
+      </div>
+      <dl class="profile-details">
+        <div><dt>Joined On</dt><dd id="profile-joined">Loading...</dd></div>
+      </dl>
+      <div class="profile-task-stats">
+        <article><span>Tasks Created</span><strong id="profile-created">0</strong></article>
+        <article><span>Completed</span><strong id="profile-completed">0</strong></article>
+        <article><span>Pending</span><strong id="profile-pending">0</strong></article>
+      </div>
+    </section>
+
+  </div>
+    </main>
+  </div>
+
+  <!-- Undo Toast -->
+  <div id="undo-toast" class="undo-toast hidden">
+
+    Task deleted.
+
+    <button id="undo-btn">
+      Undo
+    </button>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div
+    id="settings-modal"
+    class="modal"
+    style="display:none;"
+  >
+
+    <div class="modal-content">
+
+      <h2>Settings</h2>
+
+      <label>
+
+        <input
+          type="checkbox"
+          id="toggle-auto-clear"
+          checked
+        />
+
+        Auto-clear completed tasks after 24 hours
+
+      </label>
+
+      <br />
+
+      <label>
+
+        <input
+          type="checkbox"
+          id="toggle-reminder"
+          checked
+        />
+
+        Enable reminder notifications
+
+      </label>
+
+      <br />
+
+      <label>
+        <input type="checkbox" id="toggle-browser-notifications" />
+        Enable browser notifications
+      </label>
+
+      <br />
+
+      <label for="default-reminder-lead" style="display:block; margin-top: 0.75rem;">
+        Default reminder lead time
+      </label>
+      <select id="default-reminder-lead" style="width:100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid #ccc; background: #fff; color: #222;">
+        <option value="5">5 minutes before</option>
+        <option value="10">10 minutes before</option>
+        <option value="15">15 minutes before</option>
+        <option value="30" selected>30 minutes before</option>
+      </select>
+
+      <form id="change-password-form" class="change-password-form">
+        <h3>Change Password</h3>
+        <input id="current-password" type="password" autocomplete="current-password" placeholder="Current password" required />
+        <input id="new-password" type="password" autocomplete="new-password" placeholder="New password" minlength="8" required />
+        <small class="password-requirements">At least 8 characters, including 1 uppercase letter and 1 special character.</small>
+        <input id="confirm-new-password" type="password" autocomplete="new-password" placeholder="Confirm new password" minlength="8" required />
+        <p id="change-password-status" class="status-message" aria-live="polite"></p>
+        <button id="change-password-submit" class="add-btn" type="submit">Update Password</button>
+      </form>
+
+      <form id="delete-account-form" class="delete-account-form">
+        <h3>Delete Account</h3>
+        <p>This permanently deletes your account and tasks.</p>
+        <input id="delete-account-password" type="password" autocomplete="current-password" placeholder="Confirm with your password" required />
+        <p id="delete-account-status" class="status-message" aria-live="polite"></p>
+        <button id="delete-account-submit" type="submit">Delete Account</button>
+      </form>
+
+      <br /><br />
+
+      <!-- Logout Button -->
+      <button
+        onclick="logout()"
+        class="add-btn"
+      >
+        Logout
+      </button>
+
+      <br /><br />
+
+      <!-- Close Button -->
+      <button
+        id="close-settings"
+        class="add-btn"
+      >
+        Close
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Edit Task</h2>
+      <input id="edit-text" type="text" placeholder="Task description" />
+      <input id="edit-due-date" type="date" />
+      <input id="edit-due-time" type="time" />
+      <input id="edit-category" type="text" placeholder="Category (e.g. Work)" />
+      <select id="edit-repeat" aria-label="Repeat">
+        <option value="none">Repeat: none</option>
+        <option value="daily">Repeat: daily</option>
+        <option value="weekly">Repeat: weekly</option>
+        <option value="weekdays">Weekdays only</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <select id="edit-priority" aria-label="Priority">
+        <option value="low">Low Priority</option>
+        <option value="medium">Medium Priority</option>
+        <option value="high">High Priority</option>
+      </select>
+      <div style="display:flex; gap:0.75rem; flex-wrap: wrap; margin-top:1rem;">
+        <button id="save-edit" class="add-btn">Save</button>
+        <button id="cancel-edit" class="add-btn" style="background:#777;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Edit Profile</h2>
+      <form id="profile-edit-form">
+        <label for="edit-profile-username">Username</label>
+        <input id="edit-profile-username" type="text" maxlength="40" required />
+        <label for="edit-profile-email">Email</label>
+        <input id="edit-profile-email" type="email" required />
+        <label for="profile-photo-input">Photo</label>
+        <input id="profile-photo-input" type="file" accept="image/*" />
+        <img id="profile-edit-preview" class="profile-edit-preview hidden" alt="Photo preview" />
+        <p id="profile-edit-status" class="status-message" aria-live="polite"></p>
+        <div class="modal-actions">
+          <button id="save-profile-btn" class="add-btn" type="submit">Save Profile</button>
+          <button id="cancel-profile-edit" class="add-btn" type="button">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="category-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Add Category</h2>
+      <form id="category-form">
+        <label for="new-category-name">Category name</label>
+        <input id="new-category-name" type="text" maxlength="40" placeholder="e.g. Fitness" required />
+        <p id="category-status" class="status-message" aria-live="polite"></p>
+        <div class="modal-actions">
+          <button class="add-btn" type="submit">Add Category</button>
+          <button id="cancel-category" type="button" class="add-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="todo.js"></script>
+
+</body>
+</html>

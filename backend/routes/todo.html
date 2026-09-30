@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Animated To-Do List</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<body>
+
+  <div class="todo-container">
+
+    <header>
+      <h1>To-Do List</h1>
+
+      <div class="notifications-wrapper">
+        <button id="notifications-btn" title="Notifications">
+          🔔
+          <span id="notifications-badge" class="badge hidden">0</span>
+        </button>
+      </div>
+
+      <button id="theme-toggle" title="Toggle theme">
+        🌓
+      </button>
+    </header>
+
+    <div class="search-bar">
+      <input id="search-input" type="search" placeholder="Search tasks or categories..." />
+    </div>
+
+    <form id="todo-form">
+
+      <input
+        id="todo-input"
+        type="text"
+        placeholder="Add a new task..."
+        required
+      />
+
+      <input id="due-date" type="date" />
+
+      <input id="due-time" type="time" />
+
+      <input id="category-input" type="text" placeholder="Category (e.g. Work)" />
+
+      <select id="repeat-select" aria-label="Repeat">
+        <option value="none" selected>Repeat: none</option>
+        <option value="daily">Repeat: daily</option>
+        <option value="weekly">Repeat: weekly</option>
+        <option value="weekdays">Weekdays only</option>
+        <option value="monthly">Monthly</option>
+      </select>
+
+      <select id="priority-select" aria-label="Priority">
+
+        <option value="low">
+          Low Priority
+        </option>
+
+        <option value="medium" selected>
+          Medium Priority
+        </option>
+
+        <option value="high">
+          High Priority
+        </option>
+
+      </select>
+
+      <button type="submit" class="add-btn">
+        Add
+      </button>
+
+      <button type="button" id="add-water-habit" class="add-btn" style="flex: 1 1 100%; margin-top: .75rem;">
+        Add daily water habit
+      </button>
+
+    </form>
+
+    <div class="filters">
+
+      <button
+        class="filter-btn active"
+        data-filter="all"
+      >
+        All
+      </button>
+
+      <button
+        class="filter-btn"
+        data-filter="active"
+      >
+        Active
+      </button>
+
+      <button
+        class="filter-btn"
+        data-filter="completed"
+      >
+        Completed
+      </button>
+
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+
+      <progress
+        id="progress-bar"
+        value="0"
+        max="100"
+      ></progress>
+
+      <span id="progress-text">
+        0% Completed
+      </span>
+
+    </div>
+
+    <!-- Todo List -->
+    <ul class="todo-list" id="todo-list"></ul>
+
+    <!-- Clear Completed -->
+    <button
+      class="clear-btn"
+      id="clear-completed"
+    >
+      Clear Completed
+    </button>
+
+    <!-- Settings Button -->
+    <button
+      id="settings-btn"
+      class="clear-btn"
+      style="margin-top: 0.5rem;"
+    >
+      ⚙️ Settings
+    </button>
+
+  </div>
+
+  <!-- Undo Toast -->
+  <div id="undo-toast" class="undo-toast hidden">
+
+    Task deleted.
+
+    <button id="undo-btn">
+      Undo
+    </button>
+
+  </div>
+
+  <!-- Settings Modal -->
+  <div
+    id="settings-modal"
+    class="modal"
+    style="display:none;"
+  >
+
+    <div class="modal-content">
+
+      <h2>Settings</h2>
+
+      <label>
+
+        <input
+          type="checkbox"
+          id="toggle-auto-clear"
+          checked
+        />
+
+        Auto-clear completed tasks after 24 hours
+
+      </label>
+
+      <br />
+
+      <label>
+
+        <input
+          type="checkbox"
+          id="toggle-reminder"
+          checked
+        />
+
+        Enable reminder notifications
+
+      </label>
+
+      <br />
+
+      <label for="default-reminder-lead" style="display:block; margin-top: 0.75rem;">
+        Default reminder lead time
+      </label>
+      <select id="default-reminder-lead" style="width:100%; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid #ccc; background: #fff; color: #222;">
+        <option value="5">5 minutes before</option>
+        <option value="10" selected>10 minutes before</option>
+        <option value="15">15 minutes before</option>
+      </select>
+
+      <br /><br />
+
+      <!-- Logout Button -->
+      <button
+        onclick="logout()"
+        class="add-btn"
+      >
+        Logout
+      </button>
+
+      <br /><br />
+
+      <!-- Close Button -->
+      <button
+        id="close-settings"
+        class="add-btn"
+      >
+        Close
+      </button>
+
+    </div>
+
+  </div>
+
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Edit Task</h2>
+      <input id="edit-text" type="text" placeholder="Task description" />
+      <input id="edit-due-date" type="date" />
+      <input id="edit-due-time" type="time" />
+      <input id="edit-category" type="text" placeholder="Category (e.g. Work)" />
+      <select id="edit-repeat" aria-label="Repeat">
+        <option value="none">Repeat: none</option>
+        <option value="daily">Repeat: daily</option>
+        <option value="weekly">Repeat: weekly</option>
+        <option value="weekdays">Weekdays only</option>
+        <option value="monthly">Monthly</option>
+      </select>
+      <select id="edit-priority" aria-label="Priority">
+        <option value="low">Low Priority</option>
+        <option value="medium">Medium Priority</option>
+        <option value="high">High Priority</option>
+      </select>
+      <div style="display:flex; gap:0.75rem; flex-wrap: wrap; margin-top:1rem;">
+        <button id="save-edit" class="add-btn">Save</button>
+        <button id="cancel-edit" class="add-btn" style="background:#777;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notification-panel" class="notification-panel hidden">
+    <div class="panel-header">
+      <span>Notifications</span>
+      <button id="close-notification-panel" class="panel-close">×</button>
+    </div>
+    <div id="notification-list" class="notification-list"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="todo.js"></script>
+
+</body>
+</html>
