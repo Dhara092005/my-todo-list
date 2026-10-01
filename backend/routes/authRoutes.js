@@ -32,11 +32,16 @@ async function getTransporter() {
       }
     });
 
-    // Verify SMTP credentials early and fallback to Ethereal if they fail.
+    // Verify production SMTP before accepting requests that promise email delivery.
     try {
       await transporterPromise.verify();
       console.log('SMTP transport verified successfully');
     } catch (verifyErr) {
+      if (process.env.NODE_ENV === 'production') {
+        transporterPromise = null;
+        throw new Error('SMTP verification failed. Check the MAIL_* settings in your hosting environment.');
+      }
+
       console.error('SMTP verify failed, falling back to Ethereal test account:', verifyErr && verifyErr.message);
       const testAccount = await nodemailer.createTestAccount();
       console.log('Ethereal email account created (fallback):', testAccount.user);
@@ -52,6 +57,10 @@ async function getTransporter() {
       console.log('Using Ethereal SMTP transport for email delivery');
     }
   } else {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('MAIL_HOST, MAIL_USER, and MAIL_PASS must be set in production.');
+    }
+
     const testAccount = await nodemailer.createTestAccount();
     console.log("Ethereal email account created:", testAccount.user);
     console.log('Using Ethereal test account for email delivery');
