@@ -71,7 +71,8 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-const API_URL = `${window.location.origin}/auth`;
+const API_BASE_URL = window.APP_CONFIG.API_BASE_URL.replace(/\/$/, '');
+const API_URL = `${API_BASE_URL}/auth`;
 const PASSWORD_REQUIREMENTS_MESSAGE = "Password must be at least 8 characters and include at least one uppercase letter and one special character.";
 
 function isStrongPassword(password) {

@@ -6,7 +6,7 @@ if (!localStorage.getItem('userId')) {
 }
 
 // API URL
-const API_URL = window.location.origin;
+const API_URL = window.APP_CONFIG.API_BASE_URL.replace(/\/$/, '');
 
 function authenticatedFetch(url, options = {}) {
   const headers = new Headers(options.headers || {});
@@ -77,6 +77,18 @@ let settings = {
 
 // ---------------- SOCKET.IO REAL-TIME ----------------
 let socket;
+function loadSocketClient() {
+  if (typeof window.io === 'function') return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `${API_URL}/socket.io/socket.io.js`;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Could not load the real-time client.'));
+    document.head.appendChild(script);
+  });
+}
+
 function initSocket() {
   try {
     const token = localStorage.getItem('token');
@@ -85,20 +97,21 @@ function initSocket() {
       return;
     }
 
-    socket = io({ auth: { token } });
-    socket.on('connect', () => {
-      console.log('Realtime socket connected');
-    });
+    loadSocketClient().then(() => {
+      socket = window.io(`${API_URL}`, { auth: { token } });
+      socket.on('connect', () => {
+        console.log('Realtime socket connected');
+      });
 
-    socket.on('notification', (payload) => {
-      if (!settings.reminderBeforeDue) return;
-      if (payload) {
-        showNotificationForTodo(payload);
-      }
-    });
+      socket.on('notification', (payload) => {
+        if (settings.reminderBeforeDue && payload) showNotificationForTodo(payload);
+      });
 
-    socket.on('connect_error', (err) => {
-      console.error('Realtime connect error:', err && err.message);
+      socket.on('connect_error', (err) => {
+        console.error('Realtime connect error:', err && err.message);
+      });
+    }).catch(error => {
+      console.error('Socket init failed', error.message);
     });
   } catch (e) {
     console.error('Socket init failed', e && e.message);
