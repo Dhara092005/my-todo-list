@@ -24,5 +24,7 @@ services:
         sync: false
       - key: MAIL_PASS
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
       - key: MAIL_FROM
         sync: false

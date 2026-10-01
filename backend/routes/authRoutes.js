@@ -83,6 +83,42 @@ function getMailFrom() {
   return process.env.MAIL_FROM || '"Todo App" <no-reply@todo-app.local>';
 }
 
+async function sendResetEmail(mailOptions) {
+  if (process.env.RESEND_API_KEY) {
+    if (!process.env.MAIL_FROM) {
+      throw new Error('Set MAIL_FROM to a sender address verified with Resend.');
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: mailOptions.from,
+        to: [mailOptions.to],
+        subject: mailOptions.subject,
+        text: mailOptions.text,
+        html: mailOptions.html
+      })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.error('Resend email API failed:', response.status, result.message || 'No provider details');
+      throw new Error(`Email provider rejected the request (HTTP ${response.status}). Check RESEND_API_KEY and the verified sender domain.`);
+    }
+
+    console.log('Password reset email accepted by Resend:', result.id);
+    return { previewUrl: null };
+  }
+
+  const transporter = await getTransporter();
+  const info = await transporter.sendMail(mailOptions);
+  console.log('Password reset email sent:', info && info.messageId);
+  return { previewUrl: nodemailer.getTestMessageUrl(info) };
+}
+
 function createResetLink(token) {
   const appUrl = process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000');
   if (!appUrl) {
@@ -320,8 +356,6 @@ router.post("/forgot-password", async (req, res) => {
 
     await user.save();
 
-    const transporter = await getTransporter();
-
     const mailOptions = {
       from: getMailFrom(),
       to: email,
@@ -336,10 +370,7 @@ router.post("/forgot-password", async (req, res) => {
     };
 
     console.log('Sending password reset email to:', email);
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Password reset email sent:", info && info.messageId);
-
-    const previewUrl = nodemailer.getTestMessageUrl(info);
+    const { previewUrl } = await sendResetEmail(mailOptions);
     if (previewUrl) {
       console.log("Preview URL:", previewUrl);
     }
