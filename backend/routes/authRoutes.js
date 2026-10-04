@@ -91,7 +91,7 @@ function getMailFrom() {
 
 async function sendResetEmail(mailOptions) {
   const hasSmtpSettings = Boolean(process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS);
-  if (hasSmtpSettings) {
+  if (hasSmtpSettings && process.env.NODE_ENV !== 'production' && !process.env.RESEND_API_KEY) {
     const transporter = await getTransporter();
     const info = await transporter.sendMail(mailOptions);
     console.log('Password reset email sent via SMTP:', info && info.messageId);
@@ -129,7 +129,7 @@ async function sendResetEmail(mailOptions) {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('Configure MAIL_HOST, MAIL_USER, and MAIL_PASS for SMTP, or set RESEND_API_KEY for Resend.');
+    throw new Error('Set RESEND_API_KEY and RESEND_FROM in the backend hosting environment for production email.');
   }
 
   const transporter = await getTransporter();
