@@ -28,7 +28,7 @@ async function getTransporter() {
       secure: process.env.MAIL_SECURE === "true",
       auth: {
         user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
+        pass: process.env.MAIL_PASS.replace(/\s+/g, '')
       }
     });
 
@@ -39,7 +39,13 @@ async function getTransporter() {
     } catch (verifyErr) {
       if (process.env.NODE_ENV === 'production') {
         transporterPromise = null;
-        throw new Error('SMTP verification failed. Check the MAIL_* settings in your hosting environment.');
+        const diagnostic = verifyErr.code || (verifyErr.responseCode ? `SMTP ${verifyErr.responseCode}` : 'connection or authentication error');
+        console.error('SMTP verification failed:', {
+          code: verifyErr.code || null,
+          responseCode: verifyErr.responseCode || null,
+          command: verifyErr.command || null
+        });
+        throw new Error(`SMTP verification failed (${diagnostic}). Check the MAIL_* settings in your hosting environment.`);
       }
 
       console.error('SMTP verify failed, falling back to Ethereal test account:', verifyErr && verifyErr.message);
