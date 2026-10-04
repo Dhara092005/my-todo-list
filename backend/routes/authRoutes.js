@@ -80,13 +80,18 @@ async function getTransporter() {
 }
 
 function getMailFrom() {
-  return process.env.MAIL_FROM || '"Todo App" <no-reply@todo-app.local>';
+  return process.env.RESEND_FROM || process.env.MAIL_FROM || '"Todo App" <no-reply@todo-app.local>';
 }
 
 async function sendResetEmail(mailOptions) {
+  if (process.env.NODE_ENV === 'production' && !process.env.RESEND_API_KEY) {
+    throw new Error('Set RESEND_API_KEY in the backend hosting environment.');
+  }
+
   if (process.env.RESEND_API_KEY) {
-    if (!process.env.MAIL_FROM) {
-      throw new Error('Set MAIL_FROM to a sender address verified with Resend.');
+    const from = process.env.RESEND_FROM || (process.env.NODE_ENV !== 'production' ? process.env.MAIL_FROM : '');
+    if (!from) {
+      throw new Error('Set RESEND_FROM to a sender address verified with Resend.');
     }
 
     const response = await fetch('https://api.resend.com/emails', {
@@ -96,7 +101,7 @@ async function sendResetEmail(mailOptions) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: mailOptions.from,
+        from,
         to: [mailOptions.to],
         subject: mailOptions.subject,
         text: mailOptions.text,
@@ -111,6 +116,10 @@ async function sendResetEmail(mailOptions) {
 
     console.log('Password reset email accepted by Resend:', result.id);
     return { previewUrl: null };
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Resend is required for production reset emails.');
   }
 
   const transporter = await getTransporter();

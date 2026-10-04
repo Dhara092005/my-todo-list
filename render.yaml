@@ -14,17 +14,7 @@ services:
         value: https://my-todo-list-3.onrender.com
       - key: MONGO_URL
         sync: false
-      - key: MAIL_HOST
-        sync: false
-      - key: MAIL_PORT
-        sync: false
-      - key: MAIL_SECURE
-        sync: false
-      - key: MAIL_USER
-        sync: false
-      - key: MAIL_PASS
-        sync: false
       - key: RESEND_API_KEY
         sync: false
-      - key: MAIL_FROM
+      - key: RESEND_FROM
         sync: false
