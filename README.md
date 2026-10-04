@@ -49,8 +49,13 @@ Set secrets in the hosting provider's environment settings. Never commit `.env` 
 | `MONGO_URL` | MongoDB connection URI. Use MongoDB Atlas for a public deployment. |
 | `JWT_SECRET` | Secret used to sign login tokens. Required in production. |
 | `APP_URL` | Public frontend origin, used for CORS and password-reset links. |
-| `RESEND_API_KEY` | Resend API key used for production reset email. |
-| `RESEND_FROM` | Sender address permitted by Resend. Verify the sender domain with Resend for delivery to users. |
+| `MAIL_HOST` | SMTP server used for password-reset email, such as `smtp.gmail.com`. |
+| `MAIL_PORT` | SMTP port, commonly `465` for implicit TLS or `587` for STARTTLS. |
+| `MAIL_SECURE` | Set to `true` for port `465`; use `false` for port `587`. |
+| `MAIL_USER` | SMTP account username. |
+| `MAIL_PASS` | SMTP password or provider app password. Store it only in the host's secret settings. |
+| `MAIL_FROM` | Sender address accepted by the SMTP provider. For Gmail, use the authenticated Gmail address. |
+| `RESEND_API_KEY` / `RESEND_FROM` | Optional Resend alternative when SMTP is not configured. |
 
 The deployed frontend's API origin is configured in `api-config.js`. Keep it set to the public backend origin.
 
@@ -58,11 +63,11 @@ The deployed frontend's API origin is configured in `api-config.js`. Keep it set
 
 The repository includes `render.yaml` for a Render Blueprint deployment. It runs `node backend/server.js`, which serves the frontend and API from one web service. If deploying the frontend and backend as separate services, configure `api-config.js` with the backend's public HTTPS origin and set the backend's `APP_URL` to the frontend's public HTTPS origin.
 
-Provide the MongoDB Atlas URI, JWT secret, Resend key, and verified sender through Render's Environment settings. Do not add their values to `render.yaml` or GitHub.
+Provide the MongoDB Atlas URI, JWT secret, and SMTP settings through Render's Environment settings. Do not add their values to `render.yaml` or GitHub.
 
 ## Password Reset
 
-Reset links point to the frontend's `/reset-password.html` page and expire after one hour. Production reset email uses Resend. For delivery to arbitrary users, the sender domain must be verified with Resend.
+Reset links point to the frontend's `/reset-password.html` page and expire after one hour. Production sends through configured SMTP first; Resend is available as an alternative. The SMTP host must allow outbound connections from the hosting provider.
 
 ## Tests
 

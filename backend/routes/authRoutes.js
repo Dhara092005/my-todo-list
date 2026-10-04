@@ -86,12 +86,12 @@ async function getTransporter() {
 }
 
 function getMailFrom() {
-  return process.env.RESEND_FROM || process.env.MAIL_FROM || '"Todo App" <no-reply@todo-app.local>';
+  return process.env.MAIL_FROM || process.env.RESEND_FROM || '"Todo App" <no-reply@todo-app.local>';
 }
 
 async function sendResetEmail(mailOptions) {
   const hasSmtpSettings = Boolean(process.env.MAIL_HOST && process.env.MAIL_USER && process.env.MAIL_PASS);
-  if (hasSmtpSettings && process.env.NODE_ENV !== 'production' && !process.env.RESEND_API_KEY) {
+  if (hasSmtpSettings) {
     const transporter = await getTransporter();
     const info = await transporter.sendMail(mailOptions);
     console.log('Password reset email sent via SMTP:', info && info.messageId);
@@ -129,7 +129,7 @@ async function sendResetEmail(mailOptions) {
   }
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error('Set RESEND_API_KEY and RESEND_FROM in the backend hosting environment for production email.');
+    throw new Error('Set MAIL_HOST, MAIL_USER, and MAIL_PASS for production SMTP, or configure Resend.');
   }
 
   const transporter = await getTransporter();
